@@ -1,0 +1,52 @@
+version: "3.8"
+services:
+  book_db:
+    image: postgres
+    container_name: book_db
+    restart: on-failure
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - book_db_pgdata:/var/lib/postgresql/data
+    networks:
+      - library-service-system
+
+  library_db:
+    image: postgres
+    container_name: library_db
+    restart: on-failure
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - library_db_pgdata:/var/lib/postgresql/data
+    networks:
+      - library-service-system
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: on-failure
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - library-service-system
+
+networks:
+  library-service-system:
+    driver: bridge
+
+volumes:
+  library_db_pgdata:
+  book_db_pgdata:
+  pgadmin-data:
