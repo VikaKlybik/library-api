@@ -7,6 +7,7 @@ import org.modsen.entity.Book;
 import org.modsen.exception.BookNotFoundException;
 import org.modsen.mapper.BookMapper;
 import org.modsen.repository.BookRepository;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
@@ -22,11 +23,14 @@ public class BookService {
 
     public BookListDTO getBooks() {
         return new BookListDTO(bookRepository.findAll().stream()
-                .map((book) -> bookMapper.toBookDTO(book))
+                .map(bookMapper::toBookDTO)
                 .collect(Collectors.toList()));
     }
 
     public BookDTO addBook(BookDTO bookDTO) {
+        if(bookRepository.existsByIsbn(bookDTO.getIsbn())) {
+            throw new DuplicateKeyException(String.format(BOOK_NOT_FOUND_BY_ISBN, bookDTO.getIsbn()));
+        }
         Book book = bookMapper.toBookModel(bookDTO);
         Book savedBook = bookRepository.save(book);
         return bookMapper.toBookDTO(savedBook);
@@ -56,8 +60,7 @@ public class BookService {
                 .orElseThrow(() -> new BookNotFoundException(String.format(BOOK_NOT_FOUND_BY_ID, id)));
         opt_book.setAuthor(book.getAuthor());
         opt_book.setTitle(book.getTitle());
-        opt_book.setGenre(book.getGenre());
-        opt_book.setIsbn(book.getIsbn());
+        opt_book.setGenre(book.getGenre());opt_book.setIsbn(book.getIsbn());
         opt_book.setDescription(book.getDescription());
         bookRepository.save(opt_book);
         return bookMapper.toBookDTO(opt_book);
